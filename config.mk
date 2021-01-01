@@ -56,4 +56,5 @@ ARCH_C_SOURCES += \
 	$(R_PATH)/src/system_stm32f4xx.c \
 	$(R_PATH)/src/hw_init.c \
 	$(R_PATH)/src/device/gpio_impl.c \
-	$(R_PATH)/src/device/usart_impl.c
+	$(R_PATH)/src/device/usart_impl.c \
+	$(R_PATH)/src/device/i2c_impl.c

@@ -120,9 +120,12 @@ static int32_t stm32f4xx_i2c_read(const struct i2c_device * const i2c, const str
     while (LL_I2C_IsActiveFlag_AF(priv->i2c) == 1);
     while (LL_I2C_IsActiveFlag_ADDR(priv->i2c) == 0);
 
+    // Send register address
+    LL_I2C_TransmitData8(priv->i2c, transaction->i2c_device_reg);
+
     if (transaction->transaction_size == 1) {
         LL_I2C_AcknowledgeNextData(priv->i2c, LL_I2C_NACK);
-        LL_I2C_ClearFlag_ADDR(priv->i2c);
+        // LL_I2C_ClearFlag_ADDR(priv->i2c);
         while (LL_I2C_IsActiveFlag_RXNE(priv->i2c) == 0);
         uread[0] = LL_I2C_ReceiveData8(priv->i2c);
 

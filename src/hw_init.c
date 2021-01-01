@@ -68,4 +68,5 @@ void hw_init_late_config(void)
 {
     device_init(&led_gpio);
     device_init(&usart2);
+    device_init(&i2c1);
 }

@@ -22,4 +22,8 @@ extern const struct usart_device usart2;
 // Available at i2c_impl.c
 extern const struct i2c_device i2c1;
 
+// Available at i2s_impl.c
+extern const struct i2s_device i2s2;
+extern const struct i2s_device i2s3;
+
 #endif // ARCH_OPEN407Z_EXPORTED_H_

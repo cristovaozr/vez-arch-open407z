@@ -35,18 +35,16 @@ void hw_init(void)
     /* Wait till HSE is ready */
     while(LL_RCC_HSE_IsReady() != 1);
     LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_4, 168, LL_RCC_PLLP_DIV_2);
-    // LL_RCC_PLLI2S_ConfigDomain_I2S(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLI2SM_DIV_4, 192, LL_RCC_PLLI2SR_DIV_2);
+    LL_RCC_PLLI2S_ConfigDomain_I2S(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLI2SM_DIV_4, 192, LL_RCC_PLLI2SR_DIV_2);
     LL_RCC_PLL_Enable();
 
     /* Wait till PLL is ready */
     while(LL_RCC_PLL_IsReady() != 1);
-    // LL_RCC_PLLI2S_Enable();
+    LL_RCC_PLLI2S_Enable();
 
     // /* Wait till PLL is ready */
-    // while(LL_RCC_PLLI2S_IsReady() != 1)
-    // {
+    while(LL_RCC_PLLI2S_IsReady() != 1);
 
-    // }
     LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
     LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_4);
     LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_2);
@@ -69,4 +67,5 @@ void hw_init_late_config(void)
     device_init(&led_gpio);
     device_init(&usart2);
     device_init(&i2c1);
+    device_init(&i2s3);
 }

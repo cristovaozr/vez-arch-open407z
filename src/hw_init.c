@@ -7,8 +7,7 @@
  */
 
 #include "include/hw_init.h"
-#include "include/exported.h"
-#include "include/device/device_init.h"
+#include "include/device/device.h"
 
 #include "stm32f4xx.h"
 #include "stm32f4xx_ll_system.h"
@@ -61,6 +60,12 @@ void hw_init(void)
     // };
     // LL_RCC_SetI2SClockSource(LL_RCC_I2S1_CLKSOURCE_PLLI2S);
 }
+
+extern const struct usart_device usart2;
+extern const struct gpio_device led_gpio;
+extern const struct i2c_device i2c1;
+extern const struct i2s_device i2s2;
+extern const struct i2s_device i2s3;
 
 void hw_init_late_config(void)
 {

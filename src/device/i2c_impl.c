@@ -52,8 +52,8 @@ static int32_t stm32f4xx_i2c1_init(const struct i2c_device * const i2c)
     LL_I2C_DisableOwnAddress2(I2C1);
     LL_I2C_DisableGeneralCall(I2C1);
     LL_I2C_EnableClockStretching(I2C1);
-    LL_I2C_Init(I2C1, (LL_I2C_InitTypeDef *)&I2C_InitStruct);
     LL_I2C_SetOwnAddress2(I2C1, 0);
+    LL_I2C_Init(I2C1, (LL_I2C_InitTypeDef *)&I2C_InitStruct);
 
     return E_SUCCESS;
 }

@@ -8,6 +8,7 @@
 
 #include "include/hw_init.h"
 #include "include/device/device.h"
+#include "include/errors.h"
 
 #include "stm32f4xx.h"
 #include "stm32f4xx_ll_system.h"
@@ -15,13 +16,14 @@
 #include "stm32f4xx_ll_rcc.h"
 #include "stm32f4xx_ll_utils.h"
 
-void hw_init_early_config(void)
+int32_t hw_init_early_config(void)
 {
     NVIC_SetPriority(PendSV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
     NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
+    return E_SUCCESS;
 }
 
-void hw_init(void)
+int32_t hw_init(void)
 {
     LL_FLASH_SetLatency(LL_FLASH_LATENCY_5);
     // if(LL_FLASH_GetLatency() != LL_FLASH_LATENCY_5)
@@ -59,6 +61,8 @@ void hw_init(void)
     // Error_Handler();  
     // };
     // LL_RCC_SetI2SClockSource(LL_RCC_I2S1_CLKSOURCE_PLLI2S);
+
+    return E_SUCCESS;
 }
 
 extern const struct usart_device usart2;
@@ -67,10 +71,14 @@ extern const struct i2c_device i2c1;
 extern const struct i2s_device i2s2;
 extern const struct i2s_device i2s3;
 
-void hw_init_late_config(void)
+int32_t hw_init_late_config(void)
 {
-    device_init(&led_gpio);
-    device_init(&usart2);
-    device_init(&i2c1);
-    device_init(&i2s3);
+    int32_t ret;
+    if ((ret = device_init(&led_gpio)) != E_SUCCESS) goto exit;
+    if ((ret = device_init(&usart2)) != E_SUCCESS) goto exit;
+    if ((ret = device_init(&i2c1)) != E_SUCCESS) goto exit;
+    if ((ret = device_init(&i2s3)) != E_SUCCESS) goto exit;
+
+    exit:
+    return ret;
 }

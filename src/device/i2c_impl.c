@@ -28,6 +28,8 @@ struct i2c_priv {
 
 static int32_t stm32f4xx_i2c1_init(const struct i2c_device * const i2c)
 {
+    int32_t ret = E_SUCCESS;
+
     const LL_GPIO_InitTypeDef GPIO_InitStruct = {
         .Pin = LL_GPIO_PIN_6|LL_GPIO_PIN_7,
         .Mode = LL_GPIO_MODE_ALTERNATE,
@@ -53,14 +55,15 @@ static int32_t stm32f4xx_i2c1_init(const struct i2c_device * const i2c)
     LL_I2C_DisableGeneralCall(I2C1);
     LL_I2C_EnableClockStretching(I2C1);
     LL_I2C_SetOwnAddress2(I2C1, 0);
-    LL_I2C_Init(I2C1, (LL_I2C_InitTypeDef *)&I2C_InitStruct);
+    if (LL_I2C_Init(I2C1, (LL_I2C_InitTypeDef *)&I2C_InitStruct) != SUCCESS) ret = E_HARDWARE_CONFIG_FAILED;
 
-    return E_SUCCESS;
+    return ret;
 }
 
 static int32_t stm32f4xx_i2c_write(const struct i2c_device * const i2c, const struct i2c_transaction *transaction, uint32_t timeout)
 {
     int32_t ret;
+    uint32_t t;
 
     if (transaction == NULL || i2c == NULL) {
         ret = E_INVALID_PARAMETER;
@@ -72,27 +75,33 @@ static int32_t stm32f4xx_i2c_write(const struct i2c_device * const i2c, const st
 
     // Generate start
     LL_I2C_GenerateStartCondition(priv->i2c);
-    while (LL_I2C_IsActiveFlag_SB(priv->i2c) == 0);
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_SB(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
 
     // Send address
     LL_I2C_TransmitData8(priv->i2c, WRITE_TO(transaction->i2c_device_addr));
-    while (LL_I2C_IsActiveFlag_AF(priv->i2c) == 1);
-    while (LL_I2C_IsActiveFlag_ADDR(priv->i2c) == 0);
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_ADDR(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
     LL_I2C_ClearFlag_ADDR(priv->i2c);
-    while (LL_I2C_IsActiveFlag_TXE(priv->i2c) == 0);
 
     // Send register address
     LL_I2C_TransmitData8(priv->i2c, transaction->i2c_device_reg);
-    while (LL_I2C_IsActiveFlag_TXE(priv->i2c) == 0);
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_TXE(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
 
-    // Sends data
-    for(ret = 0; ret < transaction->transaction_size; ret++) {
+    for (ret = 0; ret < transaction->transaction_size; ret++) {
         LL_I2C_TransmitData8(priv->i2c, uwrite[ret]);
-        while (LL_I2C_IsActiveFlag_TXE(priv->i2c) == 0);
+        t = timeout;
+        while (LL_I2C_IsActiveFlag_TXE(priv->i2c) == 0 && --t);
+        if (t == 0) { ret = E_TIMEOUT; goto exit; }
     }
 
-    // Waits end of transmission to generate stop condition
-    while (LL_I2C_IsActiveFlag_BTF(priv->i2c) == 0);
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_BTF(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
     LL_I2C_GenerateStopCondition(priv->i2c);
 
     exit:
@@ -102,6 +111,7 @@ static int32_t stm32f4xx_i2c_write(const struct i2c_device * const i2c, const st
 static int32_t stm32f4xx_i2c_read(const struct i2c_device * const i2c, const struct i2c_transaction *transaction, uint32_t timeout)
 {
     int32_t ret;
+    uint32_t t;
 
     if (transaction == NULL || i2c == NULL) {
         ret = E_INVALID_PARAMETER;
@@ -111,47 +121,61 @@ static int32_t stm32f4xx_i2c_read(const struct i2c_device * const i2c, const str
     const struct i2c_priv *priv = (const struct i2c_priv *)i2c->priv;
     uint8_t *uread = (uint8_t *)transaction->read_data;
 
-    // Generate start
+    // Generate start bit
     LL_I2C_GenerateStartCondition(priv->i2c);
-    while (LL_I2C_IsActiveFlag_SB(priv->i2c) == 0);
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_SB(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
 
-    // Send address
-    LL_I2C_TransmitData8(priv->i2c, READ_FROM(transaction->i2c_device_addr));
-    while (LL_I2C_IsActiveFlag_AF(priv->i2c) == 1);
-    while (LL_I2C_IsActiveFlag_ADDR(priv->i2c) == 0);
+    // Sends device address
+    LL_I2C_TransmitData8(priv->i2c, WRITE_TO(transaction->i2c_device_addr));
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_ADDR(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
+    LL_I2C_ClearFlag_ADDR(priv->i2c);
 
-    // Send register address
+    // Sends device register to read from
     LL_I2C_TransmitData8(priv->i2c, transaction->i2c_device_reg);
 
-    if (transaction->transaction_size == 1) {
-        LL_I2C_AcknowledgeNextData(priv->i2c, LL_I2C_NACK);
-        // LL_I2C_ClearFlag_ADDR(priv->i2c);
-        while (LL_I2C_IsActiveFlag_RXNE(priv->i2c) == 0);
-        uread[0] = LL_I2C_ReceiveData8(priv->i2c);
+    // Repeated start condition
+    LL_I2C_GenerateStartCondition(priv->i2c);
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_SB(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
 
-        // Waits end of transmission to generate stop condition
-        while (LL_I2C_IsActiveFlag_BTF(priv->i2c) == 0);
+    // Sends device address
+    LL_I2C_TransmitData8(priv->i2c, READ_FROM(transaction->i2c_device_addr));
+    t = timeout;
+    while (LL_I2C_IsActiveFlag_ADDR(priv->i2c) == 0 && --t);
+    if (t == 0) { ret = E_TIMEOUT; goto exit; }
+
+    if (transaction->transaction_size == 1) {
+        LL_I2C_ClearFlag_ADDR(priv->i2c);
+        LL_I2C_AcknowledgeNextData(priv->i2c, LL_I2C_NACK);
         LL_I2C_GenerateStopCondition(priv->i2c);
+
+        uread[0] = LL_I2C_ReceiveData8(priv->i2c);
         ret = 1;
 
     } else if (transaction->transaction_size == 2) {
         LL_I2C_AcknowledgeNextData(priv->i2c, LL_I2C_NACK);
         LL_I2C_EnableBitPOS(priv->i2c);
         LL_I2C_ClearFlag_ADDR(priv->i2c);
-        while (LL_I2C_IsActiveFlag_BTF(priv->i2c) == 0);
-        // Waits end of transmission to generate stop condition
+
+        t = timeout;
+        while (LL_I2C_IsActiveFlag_BTF(priv->i2c) == 0 && --t);
+        if (t == 0) { ret = E_TIMEOUT; goto exit; }
         LL_I2C_GenerateStopCondition(priv->i2c);
 
-        // Reads remaining two bytes of data
-        while (LL_I2C_IsActiveFlag_RXNE(priv->i2c) == 0);
         uread[0] = LL_I2C_ReceiveData8(priv->i2c);
-        while (LL_I2C_IsActiveFlag_RXNE(priv->i2c) == 0);
         uread[1] = LL_I2C_ReceiveData8(priv->i2c);
-        ret = 2;
+
+    } else if (transaction->transaction_size > 2) {
+        ret = E_UNIMPEMENTED;
+        goto exit;
 
     } else {
-        // TODO: (cristovaozr) Implement case fot transaction->transaction_size > 2
-        ret = E_UNIMPEMENTED;
+        ret = E_INVALID_PARAMETER;
         goto exit;
     }
 

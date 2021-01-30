@@ -25,11 +25,14 @@ int32_t hw_init_early_config(void)
 
 int32_t hw_init(void)
 {
+    int32_t ret = E_SUCCESS;
+
     LL_FLASH_SetLatency(LL_FLASH_LATENCY_5);
-    // if(LL_FLASH_GetLatency() != LL_FLASH_LATENCY_5)
-    // {
-    //     Error_Handler();
-    // }
+    if (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_5) {
+        ret = E_HARDWARE_CONFIG_FAILED;
+        goto exit;
+    }
+
     LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
     LL_RCC_HSE_Enable();
 
@@ -55,14 +58,10 @@ int32_t hw_init(void)
     while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL);
     LL_SetSystemCoreClock(168000000);
 
-    /* Update the time base */
-    // if (HAL_InitTick (TICK_INT_PRIORITY) != HAL_OK)
-    // {
-    // Error_Handler();  
-    // };
     // LL_RCC_SetI2SClockSource(LL_RCC_I2S1_CLKSOURCE_PLLI2S);
 
-    return E_SUCCESS;
+    exit:
+    return ret;
 }
 
 extern const struct usart_device usart2;

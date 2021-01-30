@@ -21,6 +21,7 @@ struct gpio_priv {
     LL_GPIO_InitTypeDef config;
     uint32_t            ahb1_grp1_periph;
     GPIO_TypeDef        *gpio;
+    uint32_t            default_value;
 };
 
 static const struct gpio_priv led_priv = {
@@ -39,6 +40,9 @@ static int32_t stm32f4xx_gpio_init(const struct gpio_device * const gpio)
     const struct gpio_priv *priv = (const struct gpio_priv *)gpio->priv;
     LL_AHB1_GRP1_EnableClock(priv->ahb1_grp1_periph);
     LL_GPIO_Init(priv->gpio, (LL_GPIO_InitTypeDef *)&priv->config);
+
+    if (priv->default_value == GPIO_HIGH) LL_GPIO_SetOutputPin(priv->gpio, priv->config.Pin);
+    else                                  LL_GPIO_ResetOutputPin(priv->gpio, priv->config.Pin);
 
     return E_SUCCESS;
 }

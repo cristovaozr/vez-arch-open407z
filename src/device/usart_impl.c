@@ -94,7 +94,7 @@ static int32_t stm32f4xx_usart_write(const struct usart_device * const usart, co
     int32_t ret;
 
     if (priv_rtos[priv->index].tx_queue == NULL || priv_rtos[priv->index].mutex == NULL) {
-        ret = E_NOTINIT;
+        ret = E_NOT_INITIALIZED;
         goto exit;
     }
 
@@ -121,7 +121,7 @@ const struct usart_priv *priv = (const struct usart_priv *)usart->priv;
     int32_t ret;
 
     if (priv_rtos[priv->index].rx_queue == NULL || priv_rtos[priv->index].mutex == NULL) {
-        ret = E_NOTINIT;
+        ret = E_NOT_INITIALIZED;
         goto exit;
     }
 
@@ -141,13 +141,13 @@ const struct usart_priv *priv = (const struct usart_priv *)usart->priv;
 
 int32_t stm32f4xx_usart_poll(const struct usart_device * const usart, enum poll_op op, void *answer)
 {
-const struct usart_priv *priv = (const struct usart_priv *)usart->priv;
+    const struct usart_priv *priv = (const struct usart_priv *)usart->priv;
     int32_t ret;
 
     switch (op) {
     case POLL_RX_QUEUE_SIZE: {
         if (priv_rtos[priv->index].rx_queue == NULL) {
-            ret = E_NOTINIT;
+            ret = E_NOT_INITIALIZED;
             goto exit;
         }
         *((uint32_t *)answer) = uxQueueMessagesWaiting(priv_rtos[priv->index].rx_queue);
@@ -156,7 +156,7 @@ const struct usart_priv *priv = (const struct usart_priv *)usart->priv;
     }
     
     default:
-        ret = E_POLLOPINVALID;
+        ret = E_POLLOP_INVALID;
         goto exit;
     }
 

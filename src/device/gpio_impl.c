@@ -8,7 +8,6 @@
 
 #include "include/device/gpio.h"
 
-#include "include/utils.h"
 #include "include/errors.h"
 
 #include <stdint.h>
@@ -73,7 +72,7 @@ static const struct gpio_operations gpio_ops = {
     .gpio_toggle_op = stm32f4xx_gpio_toggle
 };
 
-EXPORTED const struct gpio_device led_gpio = {
+const struct gpio_device led_gpio = {
     .ops = &gpio_ops,
     .priv = &led_priv,
 };

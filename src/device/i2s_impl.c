@@ -8,7 +8,6 @@
 
 #include "include/device/i2s.h"
 
-#include "include/utils.h"
 #include "include/errors.h"
 
 #include <stdint.h>
@@ -152,7 +151,7 @@ static const struct i2s_priv i2s2_priv = {
     .i2s = SPI2
 };
 
-EXPORTED const struct i2s_device i2s2 = {
+const struct i2s_device i2s2 = {
     .i2s_ops = &i2s2_ops,
     .priv = &i2s2_priv
 };
@@ -166,7 +165,7 @@ static const struct i2s_priv i2s3_priv = {
     .i2s = SPI3
 };
 
-EXPORTED const struct i2s_device i2s3 = {
+const struct i2s_device i2s3 = {
     .i2s_ops = &i2s3_ops,
     .priv = &i2s3_priv
 };

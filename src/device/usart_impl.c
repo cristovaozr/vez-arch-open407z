@@ -16,7 +16,6 @@
 #include "stm32f4xx_ll_bus.h"
 
 #include "include/errors.h"
-#include "include/utils.h"
 #include "include/device/pool_op.h"
 
 #include "FreeRTOS.h"
@@ -177,7 +176,7 @@ static const struct usart_operations usart2_ops = {
     .usart_poll_op = stm32f4xx_usart_poll
 };
 
-EXPORTED const struct usart_device usart2 = {
+const struct usart_device usart2 = {
     .ops = &usart2_ops,
     .priv = &usart2_priv
 };

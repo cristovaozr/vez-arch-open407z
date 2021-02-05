@@ -8,7 +8,6 @@
 
 #include "include/device/i2c.h"
 
-#include "include/utils.h"
 #include "include/errors.h"
 
 #include <stdint.h>
@@ -193,7 +192,7 @@ static const struct i2c_priv i2c1_priv = {
     .i2c = I2C1
 };
 
-EXPORTED const struct i2c_device i2c1 = {
+const struct i2c_device i2c1 = {
     .i2c_ops = &i2c1_ops,
     .priv = &i2c1_priv
 };

@@ -12,7 +12,6 @@
 #include <stddef.h>
 
 #include "include/errors.h"
-#include "include/utils.h"
 #include "include/device/pool_op.h"
 #include "ulibc/include/utils.h"
 
@@ -30,18 +29,19 @@ static const struct spi_priv spi1_priv = {
 };
 
 static int32_t stm32f4xx_spi1_init(const struct spi_device * const spi);
-static int32_t stm32f4xx_spi_write(const struct spi_device * const spi, uint32_t size, const void *data, uint32_t timeout);
-static int32_t stm32f4xx_spi_read(const struct spi_device * const spi, uint32_t size, void *data, uint32_t timeout);
+static int32_t stm32f4xx_spi_write(const struct spi_device * const spi, const void *data, uint32_t size, uint32_t timeout);
+static int32_t stm32f4xx_spi_read(const struct spi_device * const spi, void *data, uint32_t size, uint32_t timeout);
 static int32_t stm32f4xx_spi_transact(const struct spi_device * const spi, struct spi_transaction * const transaction,
     uint32_t timeout);
 
 static const struct spi_operations spi1_ops = {
     .spi_init = stm32f4xx_spi1_init,
     .spi_write_op = stm32f4xx_spi_write,
+    .spi_read_op = stm32f4xx_spi_read,
     .spi_transact_op = stm32f4xx_spi_transact
 };
 
-EXPORTED const struct spi_device spi1 = {
+const struct spi_device spi1 = {
     .ops = &spi1_ops,
     .priv = &spi1_priv
 };
@@ -87,7 +87,7 @@ static int32_t stm32f4xx_spi1_init(const struct spi_device * const spi)
     return E_SUCCESS;
 }
 
-static int32_t stm32f4xx_spi_write(const struct spi_device * const spi, uint32_t size, const void *data, uint32_t timeout)
+static int32_t stm32f4xx_spi_write(const struct spi_device * const spi, const void *data, uint32_t size, uint32_t timeout)
 {
     (void)timeout;
     int32_t i;
@@ -109,7 +109,7 @@ static int32_t stm32f4xx_spi_write(const struct spi_device * const spi, uint32_t
     return i;
 }
 
-static int32_t stm32f4xx_spi_read(const struct spi_device * spi, uint32_t size, void *data, uint32_t timeout)
+static int32_t stm32f4xx_spi_read(const struct spi_device * spi, void *data, uint32_t size, uint32_t timeout)
 {
     (void)timeout;
     int32_t i;
@@ -126,7 +126,7 @@ static int32_t stm32f4xx_spi_read(const struct spi_device * spi, uint32_t size, 
     for (i = 0; i < size; i++) {
         while (LL_SPI_IsActiveFlag_TXE(priv->spi) == 0);
         LL_SPI_TransmitData8(priv->spi, 0xff);
-        while (LL_SPI_IsActiveFlag_RXNE(priv->spi) == );
+        while (LL_SPI_IsActiveFlag_RXNE(priv->spi) == 0);
         udata[i] = LL_SPI_ReceiveData8(priv->spi);
     }
     while (LL_SPI_IsActiveFlag_BSY(priv->spi));

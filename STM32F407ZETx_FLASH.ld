@@ -87,6 +87,12 @@ SECTIONS
     *(.glue_7t)        /* glue thumb to arm code */
     *(.eh_frame)
 
+    /* Stuff for the VEZ-Shell runtime */
+    __start_shell_commands = .;
+    KEEP(*(.shell_commands))
+    KEEP(*(.shell_commands*))
+    __end_shell_commands = .;
+
     KEEP (*(.init))
     KEEP (*(.fini))
 

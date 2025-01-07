@@ -23,19 +23,25 @@ extern const struct i2c_device i2c1;
 extern const struct i2s_device i2s2;
 extern const struct i2s_device i2s3;
 extern const struct cpu stm32f4xx_cpu;
+extern const struct spi_device spi1;
+extern const struct gpio_device nrf24l01p_ce;
+extern const struct gpio_device spi1_cs;
 
 struct device_tree {
     const char *name;
     const void *device;
 };
 
-static const struct device_tree tree[6] = {
+static const struct device_tree tree[7] = {
     {DEFAULT_CPU,   &stm32f4xx_cpu},
     {DEFAULT_USART, &usart2},
     {DEFAULT_LED,   &led_gpio},
     {"i2c1",        &i2c1},
-    {"i2s2",        &i2s2},
-    {"i2s3",        &i2s3}
+    {"spi1",        &spi1},
+    {"spi1_cs",     &spi1_cs},
+    {"nrf24l01p_ce", &nrf24l01p_ce},
+    // {"i2s2",        &i2s2},
+    // {"i2s3",        &i2s3},
 };
 
 const void *device_get_by_name(const char *dev_name)

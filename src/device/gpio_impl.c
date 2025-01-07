@@ -34,6 +34,29 @@ static const struct gpio_priv led_priv = {
     .gpio = GPIOF,
 };
 
+static const struct gpio_priv nrf24l01p_ce_priv = {
+    .config = {
+        .Pin = LL_GPIO_PIN_8,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_LOW,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL
+    },
+    .ahb1_grp1_periph = LL_AHB1_GRP1_PERIPH_GPIOA,
+    .gpio = GPIOA,
+};
+
+static const struct gpio_priv spi1_cs_priv = {
+    .config = {
+        .Pin = LL_GPIO_PIN_4,
+        .Mode = LL_GPIO_MODE_OUTPUT,
+        .Speed = LL_GPIO_SPEED_FREQ_LOW,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL
+    },
+    .ahb1_grp1_periph = LL_AHB1_GRP1_PERIPH_GPIOA,
+    .gpio = GPIOA,
+    .default_value = GPIO_HIGH
+};
+
 static int32_t stm32f4xx_gpio_init(const struct gpio_device * const gpio)
 {
     const struct gpio_priv *priv = (const struct gpio_priv *)gpio->priv;
@@ -75,4 +98,14 @@ static const struct gpio_operations gpio_ops = {
 const struct gpio_device led_gpio = {
     .ops = &gpio_ops,
     .priv = &led_priv,
+};
+
+const struct gpio_device nrf24l01p_ce = {
+    .ops = &gpio_ops,
+    .priv = &nrf24l01p_ce_priv
+};
+
+const struct gpio_device spi1_cs = {
+    .ops = &gpio_ops,
+    .priv = &spi1_cs_priv
 };

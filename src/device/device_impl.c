@@ -18,6 +18,7 @@
 #include <string.h>
 
 extern const struct usart_device usart2;
+extern const struct usart_device usart1;
 extern const struct gpio_device led_gpio;
 extern const struct i2c_device i2c1;
 extern const struct i2s_device i2s2;
@@ -32,7 +33,7 @@ struct device_tree {
     const void *device;
 };
 
-static const struct device_tree tree[7] = {
+static const struct device_tree tree[8] = {
     {DEFAULT_CPU,   &stm32f4xx_cpu},
     {DEFAULT_USART, &usart2},
     {DEFAULT_LED,   &led_gpio},
@@ -40,6 +41,7 @@ static const struct device_tree tree[7] = {
     {"spi1",        &spi1},
     {"spi1_cs",     &spi1_cs},
     {"nrf24l01p_ce", &nrf24l01p_ce},
+    {"usart1",      &usart1},
     // {"i2s2",        &i2s2},
     // {"i2s3",        &i2s3},
 };

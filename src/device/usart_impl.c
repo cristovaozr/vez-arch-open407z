@@ -24,7 +24,7 @@
 #include "semphr.h"
 
 // Number of USARTs available
-#define AVAILABLE_USARTS    1
+#define AVAILABLE_USARTS    2
 
 struct usart_priv_rtos {
     QueueHandle_t tx_queue;
@@ -81,6 +81,51 @@ static int32_t stm32f4xx_usart2_init(const struct usart_device * const usart)
     priv_rtos[priv->index].mutex = xSemaphoreCreateMutex();
 
     LL_USART_EnableIT_RXNE(USART2);
+
+    return E_SUCCESS;
+}
+
+static int32_t stm32f4xx_usart1_init(const struct usart_device * const usart)
+{
+    const struct usart_priv *priv = (const struct usart_priv *)usart->priv;
+
+    const LL_USART_InitTypeDef usart1_config = {
+        .BaudRate = 115200,
+        .DataWidth = LL_USART_DATAWIDTH_8B,
+        .StopBits = LL_USART_STOPBITS_1,
+        .Parity = LL_USART_PARITY_NONE,
+        .TransferDirection = LL_USART_DIRECTION_TX_RX,
+        .HardwareFlowControl = LL_USART_HWCONTROL_NONE,
+        .OverSampling = LL_USART_OVERSAMPLING_16
+    };
+
+    const LL_GPIO_InitTypeDef usart1_gpio_config = {
+        .Pin = LL_GPIO_PIN_9|LL_GPIO_PIN_10,
+        .Mode = LL_GPIO_MODE_ALTERNATE,
+        .Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH,
+        .OutputType = LL_GPIO_OUTPUT_PUSHPULL,
+        .Pull = LL_GPIO_PULL_NO,
+        .Alternate = LL_GPIO_AF_7,
+    };
+
+    /* Peripheral clock enable */
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+    LL_GPIO_Init(GPIOA, (LL_GPIO_InitTypeDef *)&usart1_gpio_config);
+
+    /* USART2 interrupt Init */
+    NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
+    NVIC_EnableIRQ(USART1_IRQn);
+
+    LL_USART_Init(USART1, (LL_USART_InitTypeDef *)&usart1_config);
+    LL_USART_ConfigAsyncMode(USART1);
+    LL_USART_Enable(USART1);
+
+    priv_rtos[priv->index].tx_queue = xQueueCreate(64, sizeof(uint8_t));
+    priv_rtos[priv->index].rx_queue = xQueueCreate(64, sizeof(uint8_t));
+    priv_rtos[priv->index].mutex = xSemaphoreCreateMutex();
+
+    LL_USART_EnableIT_RXNE(USART1);
 
     return E_SUCCESS;
 }
@@ -181,6 +226,26 @@ const struct usart_device usart2 = {
     .priv = &usart2_priv
 };
 
+///
+
+static const struct usart_priv usart1_priv = {
+    .irqn = USART1_IRQn,
+    .usart = USART1,
+    .index = 1
+};
+
+static const struct usart_operations usart1_ops = {
+    .usart_init = stm32f4xx_usart1_init,
+    .usart_write_op = stm32f4xx_usart_write,
+    .usart_read_op = stm32f4xx_usart_read,
+    .usart_poll_op = stm32f4xx_usart_poll
+};
+
+const struct usart_device usart1 = {
+    .ops = &usart1_ops,
+    .priv = &usart1_priv
+};
+
 static void usart_irq_handle(const struct usart_device * const usart)
 {
     BaseType_t context_switch;
@@ -211,4 +276,9 @@ static void usart_irq_handle(const struct usart_device * const usart)
 void USART2_IRQHandler(void)
 {
     usart_irq_handle(&usart2);
+}
+
+void USART1_IRQHandler(void)
+{
+    usart_irq_handle(&usart1);
 }
